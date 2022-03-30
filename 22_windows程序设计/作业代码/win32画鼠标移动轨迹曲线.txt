@@ -1,0 +1,108 @@
+#include <windows.h>
+#include <stdio.h>
+
+LRESULT CALLBACK MyProc
+(
+	HWND hwnd,      // handle to window
+	UINT uMsg,      // message identifier
+	WPARAM wParam,  // first message parameter
+	LPARAM lParam   // second message parameter
+);
+
+int WINAPI WinMain
+(
+	HINSTANCE hInstance,      // handle to current instance
+	HINSTANCE hPrevInstance,  // handle to previous instance
+	LPSTR lpCmdLine,          // command line
+	int nCmdShow              // show state
+)
+{
+	WNDCLASS wndcls;
+	wndcls.cbClsExtra = 0;
+	wndcls.cbWndExtra = 0;
+	wndcls.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	wndcls.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wndcls.hIcon = LoadIcon(NULL, IDI_QUESTION);
+	wndcls.hInstance = hInstance;
+	wndcls.lpfnWndProc = MyProc;
+	wndcls.lpszClassName = L"SoftwareCollege";
+	wndcls.lpszMenuName = NULL;
+	wndcls.style = CS_HREDRAW | CS_VREDRAW;
+
+	RegisterClass(&wndcls);
+
+	HWND hwnd;
+	hwnd = CreateWindow(L"SoftwareCollege", L"软件学院", WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, 600, 400, NULL, NULL, hInstance, NULL);
+
+	ShowWindow(hwnd, SW_SHOWNORMAL);
+	UpdateWindow(hwnd);
+
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return 0;
+}
+//鼠标按下、抬起确定的对角线点		全局变量
+POINT point1;
+POINT point2;
+LRESULT CALLBACK MyProc
+(
+	HWND hwnd,      // handle to window
+	UINT uMsg,      // message identifier
+	WPARAM wParam,  // first message parameter
+	LPARAM lParam   // second message parameter
+)
+{
+	HDC hdc;
+	switch (uMsg)
+	{
+	case WM_CHAR:
+		WCHAR wszChar[20];
+		swprintf(wszChar, 10, L"char is %c", wParam);
+		MessageBox(hwnd, wszChar, L"东北大学", MB_YESNO | MB_ICONINFORMATION);
+		break;
+	case WM_LBUTTONDOWN:
+		break;
+	case WM_MOUSEMOVE:
+		hdc = GetDC(hwnd);
+		point2.x = LOWORD(lParam);
+		point2.y = HIWORD(lParam);
+		MoveToEx(hdc, point1.x, point1.y,NULL);
+		if (point1.x != 0 && point1.y != 0)
+		{
+			LineTo(hdc, point2.x, point2.y);
+		}
+		ReleaseDC(hwnd, hdc);
+		point1.x = point2.x;
+		point1.y = point2.y;
+		break;
+	case WM_LBUTTONUP:
+		break;
+	case WM_PAINT:
+		HDC hDC;
+		PAINTSTRUCT ps;
+		hDC = BeginPaint(hwnd, &ps);
+		TextOut(hDC, 0, 5, L"画曲线", 3);
+		EndPaint(hwnd, &ps);
+		break;
+	case WM_RBUTTONDOWN:
+		//PlaySound(L"wish.wav",NULL,SND_FILENAME|SND_ASYNC);
+		break;
+	case WM_CLOSE:
+		if (IDYES == MessageBox(hwnd, L"是否真的结束？", L"neu", MB_YESNO))
+		{
+			DestroyWindow(hwnd);
+		}
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);//
+	}
+	return 0;
+}
