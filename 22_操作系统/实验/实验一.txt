@@ -1,0 +1,178 @@
+#include<iostream>
+#include<string>
+using namespace std;
+typedef struct Node
+{
+	int name;				//进程名(编号)
+	int num;				//优先数
+	float time;				//需要运行时间
+	float run_time;			//已用CPU时间
+	bool state;				//进程状态	true为执行完毕。
+	struct Node* next;		//后继
+	struct Node* prior;		//前驱
+}PCB;
+PCB* create_proc(PCB* head,int n)
+{
+	PCB *last, *p;
+	last = head;
+	for (int i = 1; i <= n; i++)
+	{
+		last->name = i;
+		cout << "请输入第" << i << "个进程的优先数" << endl;
+		cin >> last->num;
+		cout << "请输入第" << i << "个进程的要求运行时间" << endl;
+		cin >> last->time;
+		last->run_time = 0;
+		last->state = false;
+		if (i != n)			//不是最后一个节点，新建节点。
+		{
+			p = (PCB*)malloc(sizeof(PCB));
+			last->next = p;
+			p->prior = last;
+			last = p;
+		}
+		else    //最后无需新建
+		{
+			last->next = head;
+			head->prior = last;
+		}
+	}
+	return head;
+}
+int test_proc(PCB* head,int n)	//用于测试优先数输入是否正确。
+{
+	int temp = 0;
+	PCB* p = head;				//用于循环判断
+	for (int i = 1; i <= n; i++)	//判断是否有跳跃
+	{
+		temp = 0;
+		while (p != head || temp == 0)
+		{
+			if (p->num == i)
+			{
+				break;
+			}
+			p = p->next;
+			temp++;
+
+		}
+		if (temp == n)		//循环一轮未找到优先数为i的进程
+		{
+			cout << "优先数输入有误" << endl;
+			return 0;
+		}
+	}
+	return 1;
+}
+void run_proc(PCB* head, int n)
+{
+	PCB* p = head;
+	int time=0;	//	已运行时间
+	int temp = 0;//循环判断
+	int num = 0;//已完成进程数
+	for (int i = 1; i <= n; i++)
+	{
+		temp = 0;
+		while (p->num != 1)		//寻找最高优先级
+		{
+			p = p->next;
+		}
+		cout << "第" << i << "个执行的进程编号为" << p->name << endl;
+		cout << "已运行时间：" << time << endl;
+		cout << "该进程服务时间:" << p->time << endl;
+		time += p->time;
+		p->state = true;	
+		num++;	//运行完毕
+		while (temp != n)		//	更改优先级
+		{
+			p->num -= 1;
+			p = p->next;
+			temp++;
+		}
+		if (num != n)
+		{
+			cout << "剩余进程:" << endl;
+			cout << "\t进程名" << "\t\t优先数" << "\t\t运行时间" << endl;
+			p = head;
+			for (int j = 0; j < n; j++)
+			{
+				if (p->num > 0)	//进程未执行完毕
+				{
+					cout << "\t  " << p->name << "\t\t  " << p->num << "\t\t    " << p->time << endl;
+				}
+				p = p->next;
+			}
+		}
+		else
+		{
+			cout << "进程已全部执行完毕" << endl;
+			cout << "总用时t=" << time << endl;
+		}
+		system("pause");
+	}
+}
+PCB* FCFS_proc(PCB* head, int n)
+{
+	PCB* last, * p;
+	last = head;
+	for (int i = 1; i <= n; i++)
+	{
+		last->name = i;
+		last->num = i;
+		cout << "请输入第" << i << "个进程的要求运行时间" << endl;
+		cin >> last->time;
+		last->run_time = 0;
+		last->state = false;
+		if (i != n)			//不是最后一个节点，新建节点。
+		{
+			p = (PCB*)malloc(sizeof(PCB));
+			last->next = p;
+			p->prior = last;
+			last = p;
+		}
+		else    //最后无需新建
+		{
+			last->next = head;
+			head->prior = last;
+		}
+	}
+	return head;
+}
+int main()
+{
+	int n = 0;//进程数
+	int  temp = 0; //循环入口参数
+	cout << "请输入想要执行的调度算法" << endl;
+	cout << "1.最高优先级优先调度算法" << endl;
+	cout << "2.简单轮转法调度算法" << endl;
+	cin >> temp;
+	while (temp)
+	{
+		cout << "请输入要创建的进程数量" << endl;
+		cin >> n;
+		PCB* head;
+		head = (PCB*)malloc(sizeof(PCB));
+		switch (temp)
+		{
+		case 1:
+			create_proc(head, n); 
+			break;
+		case 2: 
+			FCFS_proc(head, n); 
+			break;
+		default:
+			break;
+		}
+		if (test_proc(head, n))
+		{
+			run_proc(head, n);
+		}
+		system("pause");
+		system("cls");
+		cout << "请输入想要执行的调度算法" << endl;
+		cout << "1.最高优先级优先调度算法" << endl;
+		cout << "2.简单轮转法调度算法" << endl;
+		cin >> temp;
+	}
+	return 0;
+}

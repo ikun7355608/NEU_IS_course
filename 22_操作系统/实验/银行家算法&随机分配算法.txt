@@ -1,0 +1,271 @@
+#include<iostream>
+using namespace std;
+typedef struct Node
+{
+	int name;					//进程名
+	int Max[3];					//最大分配矩阵
+	int Allocation[3];			//分配矩阵
+	int Need[3];				//最大需求矩阵
+	int Request[3];				//需求矩阵
+	bool state;					//状态，true为执行完成
+	struct Node* next;
+	struct Node* prior;
+}PCB;
+PCB* create_proc(PCB* head, int n)
+{
+	PCB* last, * p;
+	last = head;
+	for (int i = 0; i < n; i++)
+	{
+		last->name = i;
+		cout << "请依次输入第" << i << "个进程对A B C三类资源的最大需求数" << endl;
+		cin >> last->Max[0] >> last->Max[1] >> last->Max[2];
+		cout << "请依次输入第" << i << "个进程已占有A B C三类资源数" << endl;
+		cin >> last->Allocation[0] >> last->Allocation[1] >> last->Allocation[2];
+		for (int j = 0; j < 3; j++)
+		{
+			last->Need[j] = last->Max[j] - last->Allocation[j];
+		}
+		last->state = false;
+		if (i != n-1)			//不是最后一个节点，新建节点。
+		{
+			p = (PCB*)malloc(sizeof(PCB));
+			last->next = p;
+			p->prior = last;
+			last = p;
+		}
+		else    //最后无需新建
+		{
+			last->next = head;
+			head->prior = last;
+		}
+	}
+	return head;
+}
+void print_proc(PCB* head)
+{
+	PCB* p ;
+	p = head;
+	int temp = 0;
+	
+	cout << "进程\tMax\t\tAllocation\t  Need" << endl;
+	cout << "\tA  B  C \tA  B  C \tA  B  C" << endl;
+	while (p != head || temp == 0)
+	{
+		cout << "P" << p->name << "\t";
+		cout << p->Max[0] << "  " << p->Max[1] << "  " << p->Max[2]<<"\t\t";
+		cout << p->Allocation[0] << "  " << p->Allocation[1] << "  " << p->Allocation[2] << "\t\t";
+		cout << p->Need[0] << "  " << p->Need[1] << "  " << p->Need[2] << endl;
+		p = p->next;
+		temp++;
+	}
+}
+int safe_algo(PCB* head,int n,int Available[3])
+{
+	int* pi = new int[n];	//记录安全性顺序
+	for (int i = 0; i < n; i++)
+	{
+		pi[i] = 999;
+	}
+	int  Work[3] = {};
+	for (int i = 0; i < 3; i++)
+	{
+		Work[i] = Available[i];
+	}
+	PCB* p = head;
+	int num = n;//用于记录未完成资源
+	int temp = 0;//用于判断是否有可执行进程
+
+	while (num)
+	{
+		int flag=0;
+		if (p->state == false)	//当前进程未执行
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				if (p->Need[i] <= Work[i])
+				{
+					flag++;
+				}
+			}
+			if (flag == 3)		//当前进程可执行
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					Work[i] += p->Allocation[i];
+				}
+				p->state = true;
+				pi[n - num] = p->name;	//记录执行顺序
+				temp = 0;				//死锁判断数置位0
+				num -= 1;				//未完成资源数减1
+				p = head;				//置于头，（同可以运行时遵循先来先服务算法）
+			}
+			else
+			{
+				temp++;
+			}
+		}
+		if ((temp == num)&&(num!=0))
+		{
+			cout << "此时刻不是安全状态!" << endl;
+			delete[] pi;
+			return 0;
+		}
+		p = p->next;			//指向下一个节点
+	}
+	cout << "此时刻是安全状态!" << endl;
+	cout << "满足安全要求的序列为：" << endl;
+	for (int i = 0; i < n; i++)
+	{
+		if (i != n - 1)
+		{
+			cout << "P" << pi[i] << "->";
+		}
+		else
+		{
+			cout << "P" << pi[i] << endl;
+		}
+	}
+	delete[] pi;
+	return 1;
+}
+int banker_algo(PCB* head, int n, int Available[3])
+{
+	int num = 0;
+	cout << "请输入要请求资源的进程i" << endl;
+	cout << "n-1>=i>=0" << endl;
+	cin >> num;
+	PCB* p = head;
+	for (int i = 0; i < num; i++)
+	{
+			p = p->next;
+	}
+		cout << "请输入进程P" << num << "A B C三类资源需求数" << endl;
+		cin >> p->Request[0] >> p->Request[1] >> p->Request[2];
+	for (int j = 0; j < 3; j++)
+	{
+		if (p->Request[j] > p->Need[j])
+		{
+			cout << "所需资源数超出其所需的最大值!" << endl;
+			return 0;
+		}
+		else if (p->Request[j] > Available[j])
+		{
+			cout << "无足够资源，P[" << num << "]进程需要等待!" << endl;
+			return 0;
+		}
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		Available[i] -= p->Request[i];
+		p->Allocation[i] += p->Request[i];
+		p->Need[i] -= p->Request[i];
+	}
+	if (safe_algo(head, n, Available))
+	{
+		cout << "允许进程P" << num << "的请求" << endl;
+		cout << "此时可用资源为:(";
+		for (int i = 0; i < 3; i++)
+		{
+			if (i != 2)
+			{
+				cout << Available[i] << ",";
+			}
+			else
+			{
+				cout << Available[i] << ")" << endl;
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			Available[i] += p->Request[i];
+			p->Allocation[i] -= p->Request[i];
+			p->Need[i] += p->Request[i];
+		}
+	}
+}
+int random_algo(PCB* head, int n, int Available[3])
+{
+	int num = 0;
+	cout << "请输入要请求资源的进程i" << endl;
+	cout << "n-1>=i>=0" << endl;
+	cin >> num;
+	PCB* p = head;
+	for (int i = 0; i < n; i++)
+	{
+		if (num == i)
+		{
+			cout << "请输入进程P" << num << "对A B C三类资源需求数" << endl;
+			cin >> p->Request[0] >> p->Request[1] >> p->Request[2];
+		}
+		p = p->next;
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		if (p->Request[i] > Available[i])
+		{
+			cout << "无足够资源，P[" << num << "]进程需要等待!" << endl;
+			return 0;
+		}
+	}
+	cout << "允许进程P" << num << "的请求" << endl;
+	cout << "此时可用资源为:(";
+	for (int i = 0; i < 3; i++)
+	{
+		if (i != 2)
+		{
+			cout << Available[i] - p->Request[i] << ",";
+		}
+		else
+		{
+			cout << Available[i] - p->Request[i] << ")" << endl;
+		}
+	}
+	return 0;
+}
+int main()
+{
+	int temp = 0;
+	cout << "请选择要执行的算法" << endl;
+	cout << "1.银行家算法" << endl;
+	cout << "2.随机算法" << endl;
+	cin >> temp;
+	while (temp)
+	{
+		PCB* head;
+		head = (PCB*)malloc(sizeof(PCB));
+		int n;
+		cout << "请输入要创建的进程数" << endl;
+		cin >> n;
+		create_proc(head, n);
+		print_proc(head);
+		int Available[3];
+		cout << "请输入可用资源数" << endl;
+		for (int i = 0; i < 3; i++)
+		{
+			cin >> Available[i];
+		}
+		switch (temp)
+		{
+		case 1:	
+			banker_algo(head, n, Available);
+			break;
+		case 2:
+			random_algo(head, n, Available);
+			break;
+		default:
+			cout << "输入有误请重新输入" << endl;
+			break;
+		}
+		system("pause");
+		system("cls");
+		cout << "请选择要执行的算法" << endl;
+		cout << "1.银行家算法" << endl;
+		cout << "2.随机算法" << endl;
+		cin >> temp;
+	}
+	return 0;
+}

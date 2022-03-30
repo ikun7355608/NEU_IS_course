@@ -1,0 +1,187 @@
+#include<iostream>
+using namespace std;
+//进程控制块
+struct PCB
+{
+	int name;				//进程号
+	int wait_res;			//当前等待资源号
+	int applied_res;		//上次申请资源号
+	bool state;				//状态
+	PCB* next;				//下一个节点
+	PCB* prior;				//上一个节点
+};
+//资源控制块
+struct RCB
+{
+	int  num;				//资源号
+	bool state;				//状态（是否被占用）
+	RCB* next;				//下一个节点
+	RCB* prior;				//上一个节点
+	RCB* last;				//被占用时，同进程占用的前一个节点
+	RCB* pass;				//被占用时，同进程占用的后一个节点
+};
+RCB* create_resource(RCB* head,int n)
+{
+	RCB* p, * past;
+	past = head;
+	for (int i = 0; i < n; i++)
+	{
+		past->last = NULL;
+		past->pass = NULL;
+		past->num = i;
+		past->state = false;
+		if (i != n - 1)
+		{
+			p = (RCB*)malloc(sizeof(RCB));
+			past->next = p;
+			p->prior = past;
+			past = p;
+		}
+		else
+		{
+			past->next = head;
+			head->prior = past;
+		}
+	}
+	return head;
+}
+PCB* create_proc(PCB* head, int n)
+{
+	PCB* p, * last;
+	last = head;
+	for (int i = 0; i < n; i++)
+	{
+		last->name = i;
+		last->state = false;
+		last->applied_res = -1;
+		if (i != n - 1)
+		{
+			p = (PCB*)malloc(sizeof(PCB));
+			last->next = p;
+			p->prior = last;
+			last = p;
+		}
+		else
+		{
+			last->next = head;
+			head->prior = last;
+		}
+	}
+	return head;
+}
+int application(PCB* hp, RCB* hr)
+{
+	RCB* temp = hr;
+	int n = hp->wait_res;
+	for (int i = 0; i < n; i++)
+	{
+		temp = temp->next;
+	}
+	if (temp->state == false)
+	{	
+		//非第一个节点
+		if (hp->applied_res >= 0)
+		{
+			RCB* p = hr;
+			for (int i = 0; i < hp->applied_res; i++)
+			{
+				p = p->next;
+			}
+			p->pass = temp;
+			temp->last = p;
+		}
+		
+		hp->applied_res = n;
+		temp->state = true;
+		cout << "资源申请成功" << endl;
+		cout << "进程p" << hp->name << "占用资源r" << temp->num << endl;
+		return 1;
+	}
+	else if (hr->state = true)
+	{
+		cout << "当前所申请资源已被占用" << endl;
+	}
+	return 0;
+}
+/*
+PCB头节点hp
+RCB头节点hr
+第m个进程申请第n个资源
+*/
+void release_resource(RCB* p)
+{
+	while (p->last != NULL)		//不是头节点
+	{
+		cout << "资源r" << p->num << "已释放" << endl;
+		p->state = false;		//占用状态归为否
+		p = p->last;			//节点前移
+		p->pass->last = NULL;	//后一个节点前节点置为空
+		p->pass = NULL;			//该节点的后节点置为空
+	}
+	cout << "资源r" << p->num << "已释放" << endl;
+	p->state = false;
+	p->pass = NULL;
+}
+void apply_resource(PCB* hp, RCB* hr)
+{
+	PCB* q = hp;
+	int m = 0, n = 0;
+	cout << "请输入需要申请资源的进程号" << endl;
+	cin >> m;
+	cout << "请输入其所申请的资源号" << endl;
+	cin >> n;
+	for (int i = 0; i < m; i++)
+	{
+		q = q->next;
+	}
+	q->wait_res = n;
+	RCB* p = hr;
+	if (application(q, hr))
+	{
+		for (int i = 0; i < n; i++)
+		{
+			p = p->next;
+		}
+		while (p->last != NULL)
+		{
+			p = p->last;
+		}
+		cout << "此时进程P" << q->name << "占有资源";
+		while (p->pass != NULL)
+		{
+			cout << "r" << p->num << "，";
+			p = p->pass;
+		}
+		cout << "r" << p->num << endl;
+
+	}
+	char ch;
+	cout << "该进程是否执行完毕？ （y/n）" << endl;
+	cin >> ch;
+	if (ch == 'Y' || ch == 'y')
+	{
+		release_resource(p);
+	}
+}
+
+int main()
+{
+	PCB* hp = (PCB*)malloc(sizeof(PCB));
+	RCB* hr = (RCB*)malloc(sizeof(RCB));
+	int m, n;
+	char ch = 'y';
+	cout << "请输入进程数" << endl;
+	cin >> m;
+	cout << "请输入资源数" << endl;
+	cin >> n;
+	create_proc(hp, m);
+	create_resource(hr, n);
+	while (ch=='Y'||ch=='y')
+	{
+		apply_resource(hp, hr);
+		cout << "是否还有进程申请资源？(y/n)" << endl;
+		cin >> ch;
+	}
+
+	return 0;
+}
