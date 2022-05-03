@@ -2,7 +2,7 @@
 
 ## 前言
 
-东大软院信安专业19级菜狗一个，留下点实验、考试资料，需要自取。此外，留下个我的[邮箱](mailto:lyong000919@163.com)及[QQ](tencent://AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=1992018857&website=www.oicqzone.com) (1992018857)，如果您在阅读时有疑问、发现了错误又或者觉得这个人写的还可以，想交个朋友，欢迎联系我。另外再附个[个人网站](http://endgame.cc)，虽然现在除了实习里凉经没啥内容（或许将来你看到的时候也没有）。。。。
+东大软院信安专业19级菜狗一个，留下点实验、考试资料，需要自取。此外，留下个我的[邮箱](mailto:lyong000919@163.com)及[QQ](tencent://AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=1992018857&website=www.oicqzone.com) (1992018857)，如果您在阅读时有疑问、发现了错误又或者觉得这个人写的还可以，想交个朋友，欢迎联系我。另外再附个[个人网站](http://endgame.cc)，虽然现在除了实习~~面经~~凉经没啥内容（或许将来你看到的时候也没有）。。。。
 
 ## 课程简介
 
