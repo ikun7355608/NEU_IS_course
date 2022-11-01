@@ -66,7 +66,7 @@
 
 #### web
 
-老师杨薇。主讲JS。随堂期末考试让带电子设备，代码可以直接电脑调试。实验为 Stanford CS142 Web Applications的节选
+老师杨薇。主讲JS。随堂期末考试主要是JS补全代码+JS运行结果+概念题(HTML+CSS+JS+react+Node.js)，让带电子设备，代码可以直接电脑调试。实验为 Stanford CS142 Web Applications的节选
 
 #### 深度学习（31的三选一）
 
